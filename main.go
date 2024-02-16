@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"reflect"
 
+	"github.com/sandmannmax/gosim/internal/engine"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -13,7 +13,7 @@ func main() {
 	}
 	defer sdl.Quit()
 
-	window, err := sdl.CreateWindow("test", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 800, 600, sdl.WINDOW_SHOWN)
+	window, err := sdl.CreateWindow("gosim", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 800, 600, sdl.WINDOW_SHOWN)
 	if err != nil {
 		panic(err)
 	}
@@ -25,16 +25,12 @@ func main() {
 	}
 	surface.FillRect(nil, 0)
 
-	rect := sdl.Rect{0, 0, 200, 200}
-	colour := sdl.Color{R: 255, G: 0, B: 0, A: 255} // purple
-	pixel := sdl.MapRGBA(surface.Format, colour.R, colour.G, colour.B, colour.A)
-	surface.FillRect(&rect, pixel)
-	window.UpdateSurface()
+	e := engine.New(window, surface)
 
 	running := true
 	for running {
+		e.Render()
 		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-			fmt.Println(reflect.TypeOf(event))
 			switch event.(type) {
 			case *sdl.QuitEvent:
 				fmt.Println("Quit")
