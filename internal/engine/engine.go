@@ -17,10 +17,10 @@ func (o *object) calculate(dt float64) {
 	o.x += int32(o.velocityX * dt)
 	o.y += int32(o.velocityY * dt)
 
-	if o.x+o.w >= 800 || o.x < 0 {
+	if (o.x+o.w >= 800 && o.velocityX > 0) || (o.x <= 0 && o.velocityX < 0) {
 		o.velocityX *= -1
 	}
-	if o.y+o.h >= 600 || o.y < 0 {
+	if (o.y+o.h >= 600 && o.velocityY > 0) || (o.y <= 0 && o.velocityY < 0) {
 		o.velocityY *= -1
 	}
 }
@@ -49,10 +49,8 @@ func New(window *sdl.Window, surface *sdl.Surface) engine {
 		windowWidth:  w,
 		windowHeight: h,
 		surface:      surface,
-		objects: []*object{
-			{x: 0, y: 0, w: 200, h: 200, velocityX: 300, velocityY: 150},
-		},
-		fps: 60,
+		objects:      []*object{},
+		fps:          60,
 	}
 	e.initialize()
 	return e
@@ -60,6 +58,10 @@ func New(window *sdl.Window, surface *sdl.Surface) engine {
 
 func (e *engine) initialize() {
 	e.lastUpdate = sdl.GetPerformanceCounter()
+}
+
+func (e *engine) AddObject(x int32, y int32, w int32, h int32, velocityX float64, velocityY float64) {
+	e.objects = append(e.objects, &object{x: x, y: y, w: w, h: h, velocityX: velocityX, velocityY: velocityY})
 }
 
 func (e *engine) Render() {

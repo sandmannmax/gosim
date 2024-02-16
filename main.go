@@ -13,7 +13,7 @@ func main() {
 	}
 	defer sdl.Quit()
 
-	window, err := sdl.CreateWindow("gosim", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 800, 600, sdl.WINDOW_SHOWN)
+	window, err := sdl.CreateWindow("gosim", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 1000, 800, sdl.WINDOW_SHOWN)
 	if err != nil {
 		panic(err)
 	}
@@ -23,9 +23,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	surface.FillRect(nil, 0)
 
 	e := engine.New(window, surface)
+	e.AddObject(0, 0, 200, 200, 300, 150)
+	e.AddObject(400, 0, 200, 200, -400, -89)
 
 	running := true
 	for running {
