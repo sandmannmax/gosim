@@ -4,52 +4,24 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-type object struct {
-	x         int32
-	y         int32
-	w         int32
-	h         int32
-	velocityX float64
-	velocityY float64
-}
-
-func (o *object) calculate(dt float64) {
-	o.x += int32(o.velocityX * dt)
-	o.y += int32(o.velocityY * dt)
-
-	if (o.x+o.w >= 800 && o.velocityX > 0) || (o.x <= 0 && o.velocityX < 0) {
-		o.velocityX *= -1
-	}
-	if (o.y+o.h >= 600 && o.velocityY > 0) || (o.y <= 0 && o.velocityY < 0) {
-		o.velocityY *= -1
-	}
-}
-
-func (o object) draw(surface *sdl.Surface) {
-	color := sdl.Color{R: 255, G: 0, B: 0, A: 255}
-	pixel := sdl.MapRGBA(surface.Format, color.R, color.G, color.B, color.A)
-	rect := sdl.Rect{X: o.x, Y: o.y, W: o.w, H: o.h}
-	surface.FillRect(&rect, pixel)
-}
-
 type engine struct {
 	window       *sdl.Window
 	windowWidth  int32
 	windowHeight int32
-	surface      *sdl.Surface
+	renderer     *sdl.Renderer
 	lastUpdate   uint64
-	objects      []*object
+	particles    []*particle
 	fps          uint32
 }
 
-func New(window *sdl.Window, surface *sdl.Surface) engine {
+func New(window *sdl.Window, renderer *sdl.Renderer) engine {
 	w, h := window.GetSize()
 	e := engine{
 		window:       window,
 		windowWidth:  w,
 		windowHeight: h,
-		surface:      surface,
-		objects:      []*object{},
+		renderer:     renderer,
+		particles:    []*particle{},
 		fps:          60,
 	}
 	e.initialize()
@@ -60,8 +32,15 @@ func (e *engine) initialize() {
 	e.lastUpdate = sdl.GetPerformanceCounter()
 }
 
-func (e *engine) AddObject(x int32, y int32, w int32, h int32, velocityX float64, velocityY float64) {
-	e.objects = append(e.objects, &object{x: x, y: y, w: w, h: h, velocityX: velocityX, velocityY: velocityY})
+func (e *engine) AddParticle(x float64, y float64, color uint32) {
+	e.particles = append(e.particles, &particle{
+		position:     vector3{x: x, y: y, z: 0},
+		velocity:     vector3{x: 0, y: 0, z: 0},
+		acceleration: vector3{},
+		damping:      0.995,
+		inverseMass:  1,
+		color:        color,
+	})
 }
 
 func (e *engine) Render() {
@@ -69,14 +48,15 @@ func (e *engine) Render() {
 	performanceFrequency := float64(sdl.GetPerformanceFrequency())
 	dt := float64(start-e.lastUpdate) / performanceFrequency
 
-	e.surface.FillRect(nil, 0)
+	e.renderer.SetDrawColor(0, 0, 0, sdl.ALPHA_OPAQUE)
+	e.renderer.Clear()
 
-	for _, o := range e.objects {
-		o.calculate(dt)
-		o.draw(e.surface)
+	for _, p := range e.particles {
+		p.calculate(dt)
+		p.draw(e.renderer)
 	}
 
-	e.window.UpdateSurface()
+	e.renderer.Present()
 
 	e.lastUpdate = start
 	end := sdl.GetPerformanceCounter()

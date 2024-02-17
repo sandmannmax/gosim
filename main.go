@@ -13,20 +13,19 @@ func main() {
 	}
 	defer sdl.Quit()
 
-	window, err := sdl.CreateWindow("gosim", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 1000, 800, sdl.WINDOW_SHOWN)
+	window, err := sdl.CreateWindow("gosim", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 800, 600, sdl.WINDOW_SHOWN)
 	if err != nil {
 		panic(err)
 	}
 	defer window.Destroy()
 
-	surface, err := window.GetSurface()
+	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
 		panic(err)
 	}
+	defer renderer.Destroy()
 
-	e := engine.New(window, surface)
-	e.AddObject(0, 0, 200, 200, 300, 150)
-	e.AddObject(400, 0, 200, 200, -400, -89)
+	e := engine.New(window, renderer)
 
 	running := true
 	for running {
@@ -36,6 +35,12 @@ func main() {
 			case *sdl.QuitEvent:
 				fmt.Println("Quit")
 				running = false
+				break
+			case *sdl.MouseButtonEvent:
+				mbe := event.(*sdl.MouseButtonEvent)
+				if mbe.Type == sdl.MOUSEBUTTONDOWN {
+					e.AddParticle(float64(mbe.X), -float64(mbe.Y), 0)
+				}
 				break
 			}
 		}
